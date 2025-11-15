@@ -1,14 +1,15 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
-  <title>App de Vendas — Vendas | Estoque | Histórico</title>
+  <title>APP | Estoque | Histórico</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     :root{
-      --verde:#198754;
+      --verde:#3f1e00;
       --fundo:#f8f9fa;
     }
     body{
@@ -17,6 +18,7 @@
     }
     .navbar{
       background:var(--verde)!important;
+      position: relative;
     }
     .navbar .nav-link,.navbar-brand{
       color:#fff!important;
@@ -185,7 +187,6 @@
     .btn-delete:hover{
       background:#c82333;
     }
-    
     .modal-sucesso{
       display:none;
       position:fixed;
@@ -227,7 +228,6 @@
       color:#fff;
       font-size:40px;
     }
-    
     @keyframes fadeIn{
       from{opacity:0;}
       to{opacity:1;}
@@ -241,72 +241,27 @@
       50%{transform:scale(1.1);}
       100%{transform:scale(1);}
     }
-    
     .whatsapp-config{
       margin-top:20px;
       padding:15px;
       background:#f0f0f0;
       border-radius:8px;
     }
-    
     @media(max-width:767px){
-      .img-side{
-        width:70px;
-        height:60px;
-      }
-      .quantidade-controle input{
-        width:50px;
-      }
-      .btn-add{
-        width:100%;
-        margin-top:8px;
-      }
-      .img-estoque{
-        width:60px;
-        height:55px;
-      }
-      .card-product .col-auto{
-        width:100%;
-      }
-      .quantidade-controle{
-        justify-content:flex-start;
-      }
-      .modal-sucesso-content{
-        padding:30px 20px;
-      }
-      .check-animation{
-        width:60px;
-        height:60px;
-      }
-      .check-animation i{
-        font-size:30px;
-      }
-      .navbar-nav{
-        flex-direction:row;
-        gap:5px;
-      }
-      .navbar-nav .nav-link{
-        font-size:0.85rem;
-        padding:8px!important;
-      }
-      .estoque-acoes{
-        margin-top:8px;
-      }
-      h4{
-        font-size:1.3rem;
-      }
-      .container{
-        padding-left:10px;
-        padding-right:10px;
-      }
-    }
-    @media(max-width:576px){
-      .col-md-4, .col-md-2, .col-md-3, .col-md-1{
-        margin-bottom:10px;
-      }
-      .estoque-info h6{
-        font-size:0.95rem;
-      }
+      .img-side{width:70px;height:60px;}
+      .quantidade-controle input{width:50px;}
+      .btn-add{width:100%;margin-top:8px;}
+      .img-estoque{width:60px;height:55px;}
+      .card-product .col-auto{width:100%;}
+      .quantidade-controle{justify-content:flex-start;}
+      .modal-sucesso-content{padding:30px 20px;}
+      .check-animation{width:60px;height:60px;}
+      .check-animation i{font-size:30px;}
+      .navbar-nav{flex-direction:row;gap:5px;}
+      .navbar-nav .nav-link{font-size:0.85rem;padding:8px!important;}
+      .estoque-acoes{margin-top:8px;}
+      h4{font-size:1.3rem;}
+      .container{padding-left:10px;padding-right:10px;}
     }
   </style>
 </head>
@@ -440,6 +395,33 @@
     </div>
   </div>
 
+  <div class="modal fade" id="modalEditarCarrinho" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h6 class="modal-title"><i class="bi bi-pencil-fill"></i> Editar Item</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="editarCarrinhoIdx">
+          <div class="mb-3">
+            <label class="form-label fw-bold" id="editarCarrinhoNome"></label>
+            <small class="text-muted d-block">R$ <span id="editarCarrinhoPreco">0.00</span></small>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Quantidade</label>
+            <input id="editarCarrinhoQuantidade" class="form-control" type="number" min="1">
+            <small class="text-muted" id="avisoEstoque"></small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button id="btnSalvarCarrinho" class="btn btn-success">Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-sucesso" id="modalSucesso">
     <div class="modal-sucesso-content">
       <div class="check-animation">
@@ -480,9 +462,10 @@
     }
 
     function enviarWhatsApp(venda){
-      const numero = whatsappGestor.trim();
-      if(!numero) return;
-      
+      let raw = (whatsappGestor || document.getElementById('whatsappGestor')?.value || '').toString();
+      raw = raw.replace(/\s+/g,'').replace(/\D/g,'');
+      if(!raw) return;
+      let numero = raw.startsWith('55') ? raw : ('55' + raw);
       let mensagem = `🛒 *NOVA VENDA REALIZADA*\n\n`;
       mensagem += `📅 Data: ${venda.data}\n\n`;
       mensagem += `📦 *Itens vendidos:*\n`;
@@ -490,16 +473,19 @@
         mensagem += `• ${item.nome} - ${item.qtd}x R$ ${item.preco.toFixed(2)}\n`;
       });
       mensagem += `\n💰 *Total: R$ ${venda.total.toFixed(2)}*`;
-      
-      const url = `https://wa.me/55${numero}?text=${encodeURIComponent(mensagem)}`;
-      window.open(url, '_blank');
+      const encoded = encodeURIComponent(mensagem);
+      const webUrl = `https://wa.me/${numero}?text=${encoded}`;
+      window.open(webUrl, '_blank');
     }
 
     function mostrarAba(nome){
       document.getElementById('telaVendas').style.display = nome==='vendas'?'':'none';
       document.getElementById('telaEstoque').style.display = nome==='estoque'?'':'none';
       document.getElementById('telaHistorico').style.display = nome==='historico'?'':'none';
-      if(nome==='vendas') renderProdutos();
+      if(nome==='vendas'){
+        renderProdutos();
+        renderCarrinho();
+      }
       if(nome==='historico') renderHistorico();
       if(nome==='estoque' && estoqueLogado) {
         renderEstoque();
@@ -547,28 +533,8 @@
       g.innerHTML='';
       produtos.forEach((p,i)=>{
         const img=p.imagemURL||'https://via.placeholder.com/300x150?text=Sem+Imagem';
-        g.innerHTML+=`
-        <div class="col-12">
-          <div class="card card-product shadow-sm p-2 mb-2">
-            <div class="row align-items-center g-2">
-              <div class="col-auto"><div class="img-side"><img src="${img}"></div></div>
-              <div class="col">
-                <h6 class="mb-1">${p.nome}</h6>
-                <div class="small-muted">R$ <b>${p.preco.toFixed(2)}</b> • Estoque: <span class="badge bg-success">${p.quantidade}</span></div>
-              </div>
-              <div class="col-auto">
-                <div class="quantidade-controle mb-2">
-                  <button class="btn-menos" onclick="diminuirQtd(${i})">−</button>
-                  <input type="number" id="qtd-${i}" value="1" min="1">
-                  <button class="btn-mais" onclick="aumentarQtd(${i})">+</button>
-                </div>
-                <div><button class="btn-add" onclick="adicionarAoCarrinho(${i})"><i class="bi bi-cart-plus"></i> Adicionar</button></div>
-              </div>
-            </div>
-          </div>
-        </div>`;
+        g.innerHTML+=`<div class="col-12"><div class="card card-product shadow-sm p-2 mb-2"><div class="row align-items-center g-2"><div class="col-auto"><div class="img-side"><img src="${img}"></div></div><div class="col"><h6 class="mb-1">${p.nome}</h6><div class="small-muted">R$ <b>${p.preco.toFixed(2)}</b> • Estoque: <span class="badge bg-success">${p.quantidade}</span></div></div><div class="col-auto"><div class="quantidade-controle mb-2"><button class="btn-menos" onclick="diminuirQtd(${i})">−</button><input type="number" id="qtd-${i}" value="1" min="1"><button class="btn-mais" onclick="aumentarQtd(${i})">+</button></div><div><button class="btn-add" onclick="adicionarAoCarrinho(${i})"><i class="bi bi-cart-plus"></i> Adicionar</button></div></div></div></div></div>`;
       });
-      renderCarrinho();
     }
 
     function aumentarQtd(i){
@@ -596,6 +562,7 @@
       if(it)it.qtd+=qtd;else carrinho.push({nome:p.nome,preco:p.preco,qtd});
       salvarTudo();
       renderProdutos();
+      renderCarrinho();
       mostrarModalSucesso('Adicionado!', `${qtd}x ${p.nome} adicionado ao carrinho`);
     }
 
@@ -603,18 +570,44 @@
       const l=document.getElementById('lista-carrinho');
       l.innerHTML='';
       let t=0;
+      if(!carrinho.length){
+        l.innerHTML = '<li class="list-group-item text-muted">Carrinho vazio.</li>';
+      }
       carrinho.forEach((it,idx)=>{
         const st=it.preco*it.qtd;
         t+=st;
-        l.innerHTML+=`<li class="list-group-item d-flex justify-content-between align-items-center">
-          <div>
-            <b>${it.nome}</b>
-            <div class="small-muted">${it.qtd} x R$ ${it.preco.toFixed(2)}</div>
-          </div>
-          <b>R$ ${st.toFixed(2)}</b>
-        </li>`;
+        l.innerHTML+=`<li class="list-group-item d-flex justify-content-between align-items-center"><div style="min-width:0;"><b>${it.nome}</b><div class="small-muted">${it.qtd}x R$ ${it.preco.toFixed(2)}</div></div><div class="d-flex align-items-center gap-2"><button class="btn-icon" onclick="abrirEditarCarrinho(${idx})" title="Editar quantidade" style="width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;border:none;background:#0d6efd;color:#fff;cursor:pointer;"><i class="bi bi-pencil"></i></button><button class="btn-icon" onclick="removerDoCarrinho(${idx})" title="Remover" style="width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;border:none;background:#dc3545;color:#fff;cursor:pointer;"><i class="bi bi-trash"></i></button><div class="fw-bold ms-2">R$ ${st.toFixed(2)}</div></div></li>`;
       });
       document.getElementById('totalVenda').textContent=t.toFixed(2);
+    }
+
+    function abrirEditarCarrinho(idx){
+      const item = carrinho[idx];
+      const produto = produtos.find(p=>p.nome === item.nome);
+      if(!item) return;
+      document.getElementById('editarCarrinhoIdx').value = idx;
+      document.getElementById('editarCarrinhoNome').textContent = item.nome;
+      document.getElementById('editarCarrinhoPreco').textContent = item.preco.toFixed(2);
+      document.getElementById('editarCarrinhoQuantidade').value = item.qtd;
+      if(produto){
+        const avisoEl = document.getElementById('avisoEstoque');
+        avisoEl.textContent = `Estoque disponível: ${produto.quantidade + item.qtd} unidade(s)`;
+      }
+      new bootstrap.Modal(document.getElementById('modalEditarCarrinho')).show();
+    }
+
+    function removerDoCarrinho(idx){
+      const item = carrinho[idx];
+      if(!item) return;
+      const produto = produtos.find(p=>p.nome === item.nome);
+      if(produto){
+        produto.quantidade += item.qtd;
+      }
+      carrinho.splice(idx,1);
+      salvarTudo();
+      renderProdutos();
+      renderCarrinho();
+      mostrarModalSucesso('Removido', `${item.nome} removido do carrinho`);
     }
 
     document.getElementById('btnFinalizar').addEventListener('click',()=>{
@@ -632,10 +625,7 @@
       renderCarrinho();
       renderHistorico();
       mostrarModalSucesso('Venda Concluída!', `Total: R$ ${t.toFixed(2)}`);
-      
-      setTimeout(()=>{
-        enviarWhatsApp(venda);
-      }, 1000);
+      enviarWhatsApp(venda);
     });
 
     function renderHistorico(){
@@ -646,12 +636,7 @@
       }
       a.innerHTML='';
       historico.slice().reverse().forEach(v=>{
-        a.innerHTML+=`
-        <div class="mb-3 border rounded p-3 bg-light">
-          <div class="small-muted"><b>Data:</b> ${v.data}</div>
-          <ul>${v.itens.map(i=>`<li>${i.nome} — ${i.qtd} x R$ ${i.preco.toFixed(2)}</li>`).join('')}</ul>
-          <div class="fw-bold text-success">Total: R$ ${v.total.toFixed(2)}</div>
-        </div>`;
+        a.innerHTML+=`<div class="mb-3 border rounded p-3 bg-light"><div class="small-muted"><b>Data:</b> ${v.data}</div><ul>${v.itens.map(i=>`<li>${i.nome} — ${i.qtd} x R$ ${i.preco.toFixed(2)}</li>`).join('')}</ul><div class="fw-bold text-success">Total: R$ ${v.total.toFixed(2)}</div></div>`;
       });
     }
 
@@ -673,6 +658,38 @@
       }
     }
 
+    document.getElementById('btnSalvarCarrinho').addEventListener('click',()=>{
+      const idx = parseInt(document.getElementById('editarCarrinhoIdx').value);
+      const novaQtd = parseInt(document.getElementById('editarCarrinhoQuantidade').value) || 0;
+      if(novaQtd < 1){
+        mostrarModalSucesso('Erro', 'A quantidade deve ser pelo menos 1');
+        return;
+      }
+      const item = carrinho[idx];
+      const produto = produtos.find(p=>p.nome === item.nome);
+      if(!produto){
+        mostrarModalSucesso('Erro', 'Produto não encontrado no estoque');
+        return;
+      }
+      const delta = novaQtd - item.qtd;
+      if(delta > 0){
+        if(produto.quantidade < delta){
+          mostrarModalSucesso('Estoque insuficiente', `Só restam ${produto.quantidade} unidade(s) em estoque`);
+          return;
+        }
+        produto.quantidade -= delta;
+        item.qtd = novaQtd;
+      } else if(delta < 0){
+        produto.quantidade += (-delta);
+        item.qtd = novaQtd;
+      }
+      salvarTudo();
+      renderProdutos();
+      renderCarrinho();
+      bootstrap.Modal.getInstance(document.getElementById('modalEditarCarrinho')).hide();
+      mostrarModalSucesso('Atualizado!', `${item.nome}: ${novaQtd} unidade(s)`);
+    });
+
     document.getElementById('btnSalvarEdicao').addEventListener('click',()=>{
       const idx = parseInt(document.getElementById('editarProdutoIdx').value);
       produtos[idx].nome = document.getElementById('editarNome').value.trim();
@@ -687,37 +704,13 @@
     function renderEstoque(){
       const l=document.getElementById('listaEstoque');
       l.innerHTML='';
-      
       if(produtos.length === 0){
         l.innerHTML='<div class="col-12"><p class="text-muted text-center py-4">Nenhum produto cadastrado ainda.</p></div>';
         return;
       }
-      
       produtos.forEach((p, idx)=>{
         const img = p.imagemURL || 'https://via.placeholder.com/150x80?text=Sem+Imagem';
-        l.innerHTML+=`
-        <div class="col-md-6 col-12">
-          <div class="card card-estoque shadow-sm p-3">
-            <div class="d-flex gap-3 align-items-center flex-wrap">
-              <div class="img-estoque">
-                <img src="${img}" alt="${p.nome}">
-              </div>
-              <div class="estoque-info">
-                <h6>${p.nome}</h6>
-                <div class="estoque-preco">R$ <b>${p.preco.toFixed(2)}</b></div>
-                <div class="estoque-qtd">Estoque: <span class="badge bg-success">${p.quantidade}</span></div>
-              </div>
-              <div class="estoque-acoes ms-auto">
-                <button class="btn-icon btn-edit" onclick="abrirEditar(${idx})" title="Editar">
-                  <i class="bi bi-pencil"></i>
-                </button>
-                <button class="btn-icon btn-delete" onclick="excluirProduto(${idx})" title="Excluir">
-                  <i class="bi bi-trash"></i>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>`;
+        l.innerHTML+=`<div class="col-md-6 col-12"><div class="card card-estoque shadow-sm p-3"><div class="d-flex gap-3 align-items-center flex-wrap"><div class="img-estoque"><img src="${img}" alt="${p.nome}"></div><div class="estoque-info"><h6>${p.nome}</h6><div class="estoque-preco">R$ <b>${p.preco.toFixed(2)}</b></div><div class="estoque-qtd">Estoque: <span class="badge bg-success">${p.quantidade}</span></div></div><div class="estoque-acoes ms-auto"><button class="btn-icon btn-edit" onclick="abrirEditar(${idx})" title="Editar"><i class="bi bi-pencil"></i></button><button class="btn-icon btn-delete" onclick="excluirProduto(${idx})" title="Excluir"><i class="bi bi-trash"></i></button></div></div></div></div>`;
       });
     }
 
@@ -727,19 +720,11 @@
       const qtd = parseInt(document.getElementById('estoqueQuantidade').value);
       const preco = parseFloat(document.getElementById('estoquePreco').value);
       const imgFile = document.getElementById('estoqueImagem').files[0];
-      
       if(!nome || qtd<0 || preco<=0){
         mostrarModalSucesso('Erro!', 'Preencha todos os campos corretamente');
         return;
       }
-      
-      const novoProduto = {
-        nome: nome,
-        quantidade: qtd,
-        preco: preco,
-        imagemURL: ''
-      };
-      
+      const novoProduto = {nome: nome, quantidade: qtd, preco: preco, imagemURL: ''};
       if(imgFile){
         const reader = new FileReader();
         reader.onload = function(event){
@@ -765,5 +750,147 @@
     renderHistorico();
     mostrarAba('vendas');
   </script>
+</body>
+</html>
+</html>
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Chat com Bottom Nav</title>
+
+  <style>
+    :root{
+      --green: #3f1e00;
+      --nav-height-desktop: 56px;
+      --nav-height-mobile: 48px;
+      --text-color: #fff;
+      --bg-elev: rgba(0,0,0,0.12);
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: #222;
+      min-height: 100vh;
+      /* garante espaço inferior igual à nav para conteúdo não ficar escondido */
+      padding-bottom: calc(var(--nav-height-desktop) + env(safe-area-inset-bottom));
+      box-sizing: border-box;
+      background: #f5f6f8;
+    }
+
+    /* Ajusta o padding-bottom em telas pequenas para corresponder à nav reduzida */
+    @media (max-width: 480px) {
+      body { padding-bottom: calc(var(--nav-height-mobile) + env(safe-area-inset-bottom)); }
+    }
+
+    main.app {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 24px;
+      /* area do chat/conteúdo - mantenha vazio ou coloque seu conteúdo aqui */
+    }
+
+    /* NAV FIXA EM BAIXO */
+    .bottom-nav {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: var(--nav-height-desktop);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(180deg, var(--green), #3f1e00);
+      color: var(--text-color);
+      box-shadow: 0 -6px 18px rgba(0,0,0,0.12);
+      z-index: 9999;
+      padding-left: calc(12px + env(safe-area-inset-left));
+      padding-right: calc(12px + env(safe-area-inset-right));
+      box-sizing: border-box;
+    }
+
+    @media (max-width: 480px) {
+      .bottom-nav { height: var(--nav-height-mobile); }
+    }
+
+    .bottom-nav__inner {
+      width: 100%;
+      max-width: 980px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    /* Copyright visível no canto esquerdo */
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .copyright {
+      font-weight: 800;
+      font-size: 15px;
+      color: #fff;
+      background: rgba(0,0,0,0.18);
+      padding: 6px 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+      user-select: text;
+    }
+
+    /* Título central — agora o nome BARBEARIA LORD fica centralizado */
+    .nav-center {
+      font-weight: 800;
+      font-size: 16px;
+      opacity: 0.98;
+      text-align: center;
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* espaço à direita para balancear (vazio) */
+    .nav-right {
+      width: 90px; /* mantém espaço para balancear o layout; ajustável */
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    /* Em telas muito pequenas, reduz o texto para caber */
+    @media (max-width: 360px) {
+      .copyright { font-size: 13px; padding: 5px 8px; border-radius: 6px; }
+      .nav-center { font-size: 14px; }
+      .nav-right { width: 64px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <!-- Conteúdo do chat ou da página: mantenha aqui o que precisa aparecer acima da barra fixa -->
+  </main>
+
+  <!-- Barra fixa em baixo -->
+  <nav class="bottom-nav" role="navigation" aria-label="Barra inferior">
+    <div class="bottom-nav__inner">
+      <div class="nav-left">
+        <div id="copyright" class="copyright" aria-hidden="false">© CRIADO POR JULIANO</div>
+      </div>
+
+      <div class="nav-center" aria-hidden="false">BARBEARIA LORD</div>
+
+      <div class="nav-right" aria-hidden="true"><!-- espaço intencionalmente vazio para balancear --> </div>
+    </div>
+  </nav>
 </body>
 </html>
