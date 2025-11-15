@@ -227,13 +227,14 @@
 
     // ===== CONFIG - usa a sua config que você passou
     const firebaseConfig = {
-      apiKey: "AIzaSyDOOgPGQS6minWBynxF2D7AhGrlg8AM2-o",
-      authDomain: "appvendas-1e0e1.firebaseapp.com",
-      projectId: "appvendas-1e0e1",
-      storageBucket: "appvendas-1e0e1.firebasestorage.app",
-      messagingSenderId: "1049507415214",
-      appId: "1:1049507415214:web:dbfe6f19447012e86c193f"
-    };
+  apiKey: "AIzaSyDOOgPGQS6minWBynxF2D7AhGrlg8AM2-o",
+  authDomain: "appvendas-1e0e1.firebaseapp.com",
+  projectId: "appvendas-1e0e1",
+  storageBucket: "appvendas-1e0e1.appspot.com",  // <<< CORRETÍSSIMO
+  messagingSenderId: "1049507415214",
+  appId: "1:1049507415214:web:dbfe6f19447012e86c193f"
+};
+
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
