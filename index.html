@@ -624,3 +624,143 @@
   </script>
 </body>
 </html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Chat com Bottom Nav</title>
+
+  <style>
+    :root{
+      --green: #3f1e00;
+      --nav-height-desktop: 56px;
+      --nav-height-mobile: 48px;
+      --text-color: #fff;
+      --bg-elev: rgba(0,0,0,0.12);
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: #222;
+      min-height: 100vh;
+      /* garante espaço inferior igual à nav para conteúdo não ficar escondido */
+      padding-bottom: calc(var(--nav-height-desktop) + env(safe-area-inset-bottom));
+      box-sizing: border-box;
+      background: #f5f6f8;
+    }
+
+    /* Ajusta o padding-bottom em telas pequenas para corresponder à nav reduzida */
+    @media (max-width: 480px) {
+      body { padding-bottom: calc(var(--nav-height-mobile) + env(safe-area-inset-bottom)); }
+    }
+
+    main.app {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 24px;
+      /* area do chat/conteúdo - mantenha vazio ou coloque seu conteúdo aqui */
+    }
+
+    /* NAV FIXA EM BAIXO */
+    .bottom-nav {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: var(--nav-height-desktop);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(180deg, var(--green), #3f1e00);
+      color: var(--text-color);
+      box-shadow: 0 -6px 18px rgba(0,0,0,0.12);
+      z-index: 9999;
+      padding-left: calc(12px + env(safe-area-inset-left));
+      padding-right: calc(12px + env(safe-area-inset-right));
+      box-sizing: border-box;
+    }
+
+    @media (max-width: 480px) {
+      .bottom-nav { height: var(--nav-height-mobile); }
+    }
+
+    .bottom-nav__inner {
+      width: 100%;
+      max-width: 980px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    /* Copyright visível no canto esquerdo */
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .copyright {
+      font-weight: 800;
+      font-size: 15px;
+      color: #fff;
+      background: rgba(0,0,0,0.18);
+      padding: 6px 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+      user-select: text;
+    }
+
+    /* Título central — agora o nome BARBEARIA LORD fica centralizado */
+    .nav-center {
+      font-weight: 800;
+      font-size: 16px;
+      opacity: 0.98;
+      text-align: center;
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* espaço à direita para balancear (vazio) */
+    .nav-right {
+      width: 90px; /* mantém espaço para balancear o layout; ajustável */
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    /* Em telas muito pequenas, reduz o texto para caber */
+    @media (max-width: 360px) {
+      .copyright { font-size: 13px; padding: 5px 8px; border-radius: 6px; }
+      .nav-center { font-size: 14px; }
+      .nav-right { width: 64px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <!-- Conteúdo do chat ou da página: mantenha aqui o que precisa aparecer acima da barra fixa -->
+  </main>
+
+  <!-- Barra fixa em baixo -->
+  <nav class="bottom-nav" role="navigation" aria-label="Barra inferior">
+    <div class="bottom-nav__inner">
+      <div class="nav-left">
+        <div id="copyright" class="copyright" aria-hidden="false">© CRIADO POR JULIANO</div>
+      </div>
+
+      <div class="nav-center" aria-hidden="false">BARBEARIA LORD</div>
+
+      <div class="nav-right" aria-hidden="true"><!-- espaço intencionalmente vazio para balancear --> </div>
+    </div>
+  </nav>
+</body>
+</html>
